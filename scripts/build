@@ -1,0 +1,34 @@
+#!/bin/sh
+
+set -eu
+
+root=$(realpath $(dirname $0)/..)
+cd $root
+
+. $root/scripts/utils.sh
+
+# Building CCL requires three components:
+# - A lisp kernel.
+# - A heap image, used by the kernel.
+# - A set of header files used for dependencies such as libc, jni, gmp...
+#
+# Building the source code from scratch requires a recent binary release
+# containing these components.
+
+ccl_kernel="$root/$(ccl_kernel_name)"
+ccl_image="$root/$(ccl_image_name)"
+ccl_header_dir="$root/$(ccl_header_dir_name)"
+
+if [ ! -f "$ccl_kernel" ]; then
+    fatal "ccl kernel not found at $ccl_kernel"
+fi
+
+if [ ! -f "$ccl_image" ]; then
+    fatal "ccl heap image not found at $ccl_image"
+fi
+
+if [ ! -d "$ccl_header_dir" ]; then
+    fatal "ccl header directory not found at $ccl_header_dir"
+fi
+
+echo "(ccl:rebuild-ccl :full t)" | $ccl_kernel --no-init --quiet --batch
